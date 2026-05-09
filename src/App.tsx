@@ -202,7 +202,7 @@ export function App() {
     const groupId = uid("group");
     setLedger((current) => {
       const group = { id: groupId, activityId: current.activity.id, name };
-      const defaultMembers = [1, 2, 3].map((index) => createMember(current.activity.id, group.id, `${name}大人${index}`, "adult"));
+      const defaultMembers = [createMember(current.activity.id, group.id, name, "adult")];
       return {
         ...current,
         groups: [...current.groups, group],
