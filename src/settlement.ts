@@ -225,3 +225,82 @@ ${unitLines}
 
 没有计入共同结算的记录：${money(result.ignoredAmount)}。`;
 }
+
+export function generateBillSummary(ledger: LedgerState, result: SettlementResult) {
+  // 分类统计
+  const categoryLines = [...result.categoryStats.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([category, amount]) => `  ${categories[category] || category}: ${money(amount)}`)
+    .join("\n") || "  (无)";
+
+  // 参与人员统计
+  const memberCount = ledger.members.length;
+  const groupCount = ledger.groups.length;
+
+  // 家庭/人员统计
+  const unitLines = [...result.unitStats.entries()]
+    .map(([unitId, stat]) => {
+      const group = ledger.groups.find((item) => item.id === unitId);
+      const member = ledger.members.find((item) => item.id === unitId);
+      const unitName = group?.name || member?.name || "未知";
+      return `  ${unitName}: 支付 ${money(stat.paid)}, 分摊 ${money(stat.share)}, 差额 ${money(stat.paid - stat.share)}`;
+    })
+    .join("\n") || "  (无)";
+
+  // 结算转账
+  const settlementLines = result.groupSettlements.length
+    ? result.groupSettlements.map((item) => `  ${item.fromName} → ${item.toName}: ${money(item.amount)}`).join("\n")
+    : "  (大家已经基本持平)";
+
+  // 内部结算
+  const internalLines = result.internalSettlements.length
+    ? result.internalSettlements.map((item) => `  ${item.groupName} | ${item.fromName} → ${item.toName}: ${money(item.amount)}`).join("\n")
+    : "  (无)";
+
+  // 详细费用记录
+  const expenseLines = ledger.expenses
+    .filter((expense) => expense.splitMode !== "ignore" && getEffectiveAmount(expense) > 0)
+    .map((expense) => {
+      const payer = ledger.members.find((m) => m.id === expense.payerId);
+      const payerName = payer?.name || "未知";
+      const effectiveAmount = getEffectiveAmount(expense);
+      return `  [${expense.expenseDate || "无日期"}] ${payerName} - ${categories[expense.category]}: ${money(effectiveAmount)} (${expense.content})`;
+    })
+    .join("\n") || "  (无)";
+
+  return `════════════════════════════════════════
+          【${ledger.activity.name || "活动"}】费用汇总账单
+════════════════════════════════════════
+
+📊 账单汇总
+──────────────────────────────────────
+活动名称: ${ledger.activity.name || "未命名活动"}
+统计时间: ${new Date().toLocaleDateString("zh-CN")}
+参与家庭: ${groupCount} 个
+参与人员: ${memberCount} 人
+总计费用: ${money(result.totalAmount)}
+
+💰 按分类统计
+──────────────────────────────────────
+${categoryLines}
+
+👥 人员/家庭统计 (支付 - 分摊 = 差额)
+──────────────────────────────────────
+${unitLines}
+
+💸 结算转账建议
+──────────────────────────────────────
+${settlementLines}
+
+🏠 家庭内部参考
+──────────────────────────────────────
+${internalLines}
+
+📝 详细费用记录
+──────────────────────────────────────
+${expenseLines}
+
+${result.ignoredAmount > 0 ? `\n⚠️  未计入结算的费用: ${money(result.ignoredAmount)}\n` : ""}
+════════════════════════════════════════
+生成时间: ${new Date().toLocaleString("zh-CN")}`;
+}

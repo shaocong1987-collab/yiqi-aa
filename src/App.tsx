@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { activityTypes, categories, defaultSplitModes, expenseSplitModes, memberTypes } from "./constants";
 import { createExpense, createMember, createSampleState } from "./sample";
-import { calculateSettlement, compactSummary, detailedSummary, getEffectiveAmount } from "./settlement";
+import { calculateSettlement, compactSummary, detailedSummary, generateBillSummary, getEffectiveAmount } from "./settlement";
 import { deleteLedger as deleteStoredLedger, loadLedger, loadLedgers, saveLedger, setCurrentLedger, validateLedger } from "./storage";
 import type { Category, DefaultSplitMode, Expense, ExpenseSplitMode, LedgerState, MemberType } from "./types";
 import { downloadJson, money, timestamp, today, uid } from "./utils";
@@ -307,8 +307,8 @@ export function App() {
   };
 
   const copySummary = async () => {
-    await navigator.clipboard.writeText(compactSummary(ledger, result));
-    setMessage("总结已复制。");
+    await navigator.clipboard.writeText(generateBillSummary(ledger, result));
+    setMessage("总账单已复制。");
   };
 
   const createNewActivity = () => {
@@ -683,8 +683,47 @@ export function App() {
         )}
 
         {page === "settlement" && (
-          <Panel title="结算结果" action={<Button variant="soft" type="button" onClick={copySummary}>复制总结</Button>}>
+          <Panel title="结算结果" action={<Button variant="soft" type="button" onClick={copySummary}>复制总账单</Button>}>
             <div className="grid gap-4">
+              <div className="rounded-lg border border-slate-100 bg-gradient-to-br from-mint-50 to-slate-50 p-3">
+                <strong className="text-mint-800">📊 费用汇总</strong>
+                <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+                  <div className="rounded bg-white p-2">
+                    <p className="text-xs text-slate-600">总计费用</p>
+                    <p className="text-lg font-bold text-mint-700">{money(result.totalAmount)}</p>
+                  </div>
+                  <div className="rounded bg-white p-2">
+                    <p className="text-xs text-slate-600">参与人数</p>
+                    <p className="text-lg font-bold text-slate-700">{ledger.members.length}</p>
+                  </div>
+                  <div className="rounded bg-white p-2">
+                    <p className="text-xs text-slate-600">参与家庭</p>
+                    <p className="text-lg font-bold text-slate-700">{ledger.groups.length}</p>
+                  </div>
+                  <div className="rounded bg-white p-2">
+                    <p className="text-xs text-slate-600">分类数</p>
+                    <p className="text-lg font-bold text-slate-700">{result.categoryStats.size}</p>
+                  </div>
+                </div>
+                <div className="mt-3 border-t border-slate-200 pt-2">
+                  <p className="text-xs font-semibold text-slate-600">分类占比</p>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {[...result.categoryStats.entries()]
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 5)
+                      .map(([category, amount]) => (
+                        <span key={category} className="inline-block rounded-full bg-white px-2 py-1 text-xs text-slate-700">
+                          {categories[category]}: {money(amount)}
+                        </span>
+                      ))}
+                    {result.categoryStats.size > 5 && (
+                      <span className="inline-block rounded-full bg-white px-2 py-1 text-xs text-slate-500">
+                        ...还有 {result.categoryStats.size - 5} 项
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div className="rounded-lg border border-slate-100 bg-white p-3">
                 <strong>主结算建议</strong>
                 <div className="mt-2 grid gap-2">
