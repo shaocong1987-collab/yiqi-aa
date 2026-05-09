@@ -230,8 +230,8 @@ export function generateBillSummary(ledger: LedgerState, result: SettlementResul
   // 分类统计
   const categoryLines = [...result.categoryStats.entries()]
     .sort((a, b) => b[1] - a[1])
-    .map(([category, amount]) => `  ${categories[category] || category}: ${money(amount)}`)
-    .join("\n") || "  (无)";
+    .map(([category, amount]) => `${categories[category] || category}  ${money(amount)}`)
+    .join("\n") || "(无)";
 
   // 参与人员统计
   const memberCount = ledger.members.length;
@@ -243,19 +243,35 @@ export function generateBillSummary(ledger: LedgerState, result: SettlementResul
       const group = ledger.groups.find((item) => item.id === unitId);
       const member = ledger.members.find((item) => item.id === unitId);
       const unitName = group?.name || member?.name || "未知";
-      return `  ${unitName}: 支付 ${money(stat.paid)}, 分摊 ${money(stat.share)}, 差额 ${money(stat.paid - stat.share)}`;
+      const diff = stat.paid - stat.share;
+      const diffStr = diff > 0.01 ? `(多垫 ${money(diff)})` : diff < -0.01 ? `(少垫 ${money(-diff)})` : "(平)";
+      return `${unitName}  支付${money(stat.paid)}  ${diffStr}`;
     })
-    .join("\n") || "  (无)";
+    .join("\n") || "(无)";
 
   // 结算转账
   const settlementLines = result.groupSettlements.length
-    ? result.groupSettlements.map((item) => `  ${item.fromName} → ${item.toName}: ${money(item.amount)}`).join("\n")
-    : "  (大家已经基本持平)";
+    ? result.groupSettlements.map((item) => {
+        const padName = (name: string) => {
+          const len = name.length;
+          const padding = Math.max(0, 8 - len * 2); // 按字符宽度估算
+          return name + " ".repeat(padding);
+        };
+        return `${padName(item.fromName)} -> ${padName(item.toName)} ${money(item.amount)}`;
+      }).join("\n")
+    : "(大家已持平)";
 
   // 内部结算
   const internalLines = result.internalSettlements.length
-    ? result.internalSettlements.map((item) => `  ${item.groupName} | ${item.fromName} → ${item.toName}: ${money(item.amount)}`).join("\n")
-    : "  (无)";
+    ? result.internalSettlements.map((item) => {
+        const padName = (name: string) => {
+          const len = name.length;
+          const padding = Math.max(0, 8 - len * 2);
+          return name + " ".repeat(padding);
+        };
+        return `${item.groupName}  ${padName(item.fromName)} -> ${padName(item.toName)} ${money(item.amount)}`;
+      }).join("\n")
+    : "(无)";
 
   // 详细费用记录
   const expenseLines = ledger.expenses
@@ -264,43 +280,34 @@ export function generateBillSummary(ledger: LedgerState, result: SettlementResul
       const payer = ledger.members.find((m) => m.id === expense.payerId);
       const payerName = payer?.name || "未知";
       const effectiveAmount = getEffectiveAmount(expense);
-      return `  [${expense.expenseDate || "无日期"}] ${payerName} - ${categories[expense.category]}: ${money(effectiveAmount)} (${expense.content})`;
+      const date = expense.expenseDate ? expense.expenseDate.slice(5) : "无日期"; // 只显示月-日
+      return `${date}  ${payerName}  ${categories[expense.category]}  ${money(effectiveAmount)}  ${expense.content}`;
     })
-    .join("\n") || "  (无)";
+    .join("\n") || "(无)";
 
-  return `════════════════════════════════════════
-          【${ledger.activity.name || "活动"}】费用汇总账单
-════════════════════════════════════════
+  return `【${ledger.activity.name || "活动"}】费用汇总账单
 
-📊 账单汇总
-──────────────────────────────────────
-活动名称: ${ledger.activity.name || "未命名活动"}
-统计时间: ${new Date().toLocaleDateString("zh-CN")}
-参与家庭: ${groupCount} 个
-参与人员: ${memberCount} 人
-总计费用: ${money(result.totalAmount)}
+======= 账单汇总 =======
+活动: ${ledger.activity.name || "未命名活动"}
+时间: ${new Date().toLocaleDateString("zh-CN")}
+家庭: ${groupCount}个  人数: ${memberCount}人
+总计: ${money(result.totalAmount)}
 
-💰 按分类统计
-──────────────────────────────────────
+======= 分类统计 =======
 ${categoryLines}
 
-👥 人员/家庭统计 (支付 - 分摊 = 差额)
-──────────────────────────────────────
+======= 人员统计 =======
 ${unitLines}
 
-💸 结算转账建议
-──────────────────────────────────────
+======= 结算建议 =======
 ${settlementLines}
 
-🏠 家庭内部参考
-──────────────────────────────────────
+======= 家庭内部 =======
 ${internalLines}
 
-📝 详细费用记录
-──────────────────────────────────────
+======= 费用详单 =======
 ${expenseLines}
+${result.ignoredAmount > 0 ? `\n未计入: ${money(result.ignoredAmount)}` : ""}
 
-${result.ignoredAmount > 0 ? `\n⚠️  未计入结算的费用: ${money(result.ignoredAmount)}\n` : ""}
-════════════════════════════════════════
-生成时间: ${new Date().toLocaleString("zh-CN")}`;
+生成: ${new Date().toLocaleString("zh-CN")}`;
 }
