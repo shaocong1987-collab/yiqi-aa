@@ -425,20 +425,29 @@ export function App() {
   };
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-6xl px-4 pb-24 pt-5 text-slate-800 sm:px-6 lg:px-8">
-      <header className="pb-5">
-        <h1 className="text-4xl font-semibold tracking-normal text-slate-900 sm:text-5xl">一起A了吧</h1>
-        <p className="mt-3 max-w-2xl text-[15px] leading-7 text-slate-600">
-          本地单人记账工具。先把家庭/成员、费用和结算建议跑通，适合聚餐、露营、旅行时快速记账。
-        </p>
+    <main className="app-shell mx-auto min-h-screen w-full max-w-6xl px-4 pb-28 pt-6 font-body text-ink sm:px-6 lg:px-8">
+      <header className="grid items-end gap-6 border-b border-ink/10 pb-6 lg:grid-cols-[1fr_380px]">
+        <div>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-clay">Local ledger · AA settlement</span>
+          <h1 className="mt-3 font-display text-5xl font-normal leading-none text-ink sm:text-6xl">一起A了吧</h1>
+          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-ink/60">
+            聚餐、露营、旅行的共同支出，保存在浏览器本地。清楚记录谁垫付、怎么算、最后转给谁。
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2 text-xs text-ink/60">
+            <span className="rounded-full border border-ink/10 bg-white/30 px-3 py-1.5 backdrop-blur">本地优先</span>
+            <span className="rounded-full border border-ink/10 bg-white/30 px-3 py-1.5 backdrop-blur">离线可用</span>
+            <span className="rounded-full border border-ink/10 bg-white/30 px-3 py-1.5 backdrop-blur">家庭分摊</span>
+          </div>
+        </div>
+        <HeroVisual ledger={ledger} result={result} />
       </header>
 
       {message && (
-        <div className="mb-4 rounded-lg border border-mint-100 bg-mint-50 px-3 py-2 text-sm text-mint-700">
+        <div className="mt-5 rounded-lg border border-clay/20 bg-white/50 px-3 py-2 text-sm text-clay shadow-soft backdrop-blur-xl">
           {message}
         </div>
       )}
-      <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${offlineReady ? "border-mint-100 bg-mint-50 text-mint-700" : "border-slate-100 bg-white/80 text-slate-500"}`}>
+      <div className={`mt-4 rounded-lg border px-3 py-2 text-sm shadow-soft backdrop-blur-xl ${offlineReady ? "border-clay/20 bg-white/50 text-clay" : "border-ink/10 bg-white/40 text-ink/50"}`}>
         {offlineReady
           ? "离线访问已准备好。添加到手机主屏幕后，电脑关闭也能打开应用。"
           : canUsePwaOffline
@@ -446,14 +455,14 @@ export function App() {
             : "当前是局域网 HTTP 访问，可正常试用；要安装离线应用，需要通过 HTTPS 地址打开。"}
       </div>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="计入 AA" value={money(result.totalAmount)} />
         <Stat label="记录但先不 A" value={money(result.ignoredAmount)} />
         <Stat label="家庭" value={String(ledger.groups.length)} />
         <Stat label="成员" value={String(ledger.members.length)} />
       </section>
 
-      <nav className="mt-5 hidden rounded-lg border border-slate-100 bg-white/90 p-2 shadow-soft sm:flex sm:flex-wrap sm:gap-2">
+      <nav className="mt-5 hidden rounded-lg border border-ink/10 bg-white/40 p-2 shadow-glass backdrop-blur-xl sm:flex sm:flex-wrap sm:gap-2">
         <NavButton icon={<Home size={16} />} active={page === "activities"} onClick={() => setPage("activities")}>活动</NavButton>
         <NavButton icon={<Users size={16} />} active={page === "settings"} onClick={() => setPage("settings")}>设置</NavButton>
         <NavButton icon={<ReceiptText size={16} />} active={page === "expenses"} onClick={() => setPage("expenses")}>费用</NavButton>
@@ -465,14 +474,14 @@ export function App() {
           <Panel title="活动列表" action={<Button icon={<Plus size={16} />} type="button" onClick={createNewActivity}>创建活动</Button>}>
             <div className="grid gap-3">
               {(activityList.length ? activityList : [ledger]).map((item) => (
-                <article className={`rounded-lg border bg-white p-4 ${item.activity.id === ledger.activity.id ? "border-mint-100 ring-2 ring-mint-100" : "border-slate-100"}`} key={item.activity.id}>
+                <article className={`rounded-lg border bg-white/55 p-4 shadow-soft backdrop-blur ${item.activity.id === ledger.activity.id ? "border-clay/25 ring-2 ring-clay/15" : "border-ink/10"}`} key={item.activity.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <strong className="text-lg">{item.activity.name}</strong>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-ink/50">
                         {activityTypes[item.activity.type]} · 默认{defaultSplitModes[item.activity.defaultSplitMode]} · {item.expenses.length} 笔费用
                       </p>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-ink/50">
                         {item.activity.startDate || "未设置日期"}{item.activity.endDate ? ` 至 ${item.activity.endDate}` : ""}
                       </p>
                     </div>
@@ -491,12 +500,12 @@ export function App() {
                   </div>
                 </article>
               ))}
-              <div className="rounded-lg border border-dashed border-slate-200 bg-white/70 p-4 text-sm leading-6 text-slate-600">
+              <div className="rounded-lg border border-dashed border-ink/15 bg-white/40 p-4 text-sm leading-6 text-ink/60">
                 活动记录保存在当前浏览器本地。换手机或清理浏览器数据前，记得导出 JSON 备份。
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button icon={<Download size={16} />} variant="soft" type="button" onClick={() => downloadJson(`${ledger.activity.name}-账本.json`, ledger)}>导出 JSON</Button>
-                <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-sky-50 px-3 py-2 text-sm text-slate-700">
+                <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-ink/10 bg-paper-50/70 px-3 py-2 text-sm text-ink/75 hover:bg-white/70">
                   <FileUp size={16} /> 导入 JSON
                   <input hidden type="file" accept="application/json" onChange={importLedger} />
                 </label>
@@ -522,17 +531,17 @@ export function App() {
                 <Field label="开始日期"><input type="date" name="startDate" defaultValue={ledger.activity.startDate} /></Field>
                 <Field label="结束日期"><input type="date" name="endDate" defaultValue={ledger.activity.endDate} /></Field>
               </div>
-              <label className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              <label className="flex items-start gap-2 rounded-lg border border-ink/10 bg-paper-50/60 px-3 py-2 text-sm text-ink/60">
                 <input type="checkbox" name="enableInternalSettlement" defaultChecked={ledger.activity.enableInternalSettlement} />
                 <span>
-                  <span className="block text-slate-800">显示家庭内参考分摊</span>
-                  <span className="block text-xs leading-5 text-slate-500">只给每个家庭自己看，例如夫妻之间谁多垫了多少；不会影响家庭之间的主结算。</span>
+                  <span className="block text-ink">显示家庭内参考分摊</span>
+                  <span className="block text-xs leading-5 text-ink/50">只给每个家庭自己看，例如夫妻之间谁多垫了多少；不会影响家庭之间的主结算。</span>
                 </span>
               </label>
               <div className="flex flex-wrap gap-2">
                 <Button icon={<Save size={16} />} type="submit">保存活动</Button>
                 <Button icon={<Download size={16} />} variant="soft" type="button" onClick={() => downloadJson(`${ledger.activity.name}-账本.json`, ledger)}>导出 JSON</Button>
-                <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-sky-50 px-3 py-2 text-sm text-slate-700">
+                <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-ink/10 bg-paper-50/70 px-3 py-2 text-sm text-ink/75 hover:bg-white/70">
                   <FileUp size={16} /> 导入 JSON
                   <input hidden type="file" accept="application/json" onChange={importLedger} />
                 </label>
@@ -564,55 +573,55 @@ export function App() {
                 <div className="flex items-end"><Button icon={<Plus size={16} />} type="submit">添加成员</Button></div>
               </div>
             </form>
-            <div className="mt-4 rounded-lg border border-slate-100 bg-white p-3">
+            <div className="mt-4 rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <strong className="text-sm">常用家庭/成员</strong>
                 <Button variant="soft" type="button" onClick={saveCurrentRoster}>保存当前组合</Button>
               </div>
               <div className="mt-3 grid gap-2">
                 {commonRosters.map((roster) => (
-                  <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-50 p-2" key={roster.id}>
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-ink/10 bg-paper-50/60 p-2" key={roster.id}>
                     <button
-                      className="rounded-full bg-mint-50 px-3 py-2 text-sm text-mint-700 hover:bg-mint-100"
+                      className="rounded-full border border-clay/15 bg-clay/10 px-3 py-2 text-sm text-clay hover:bg-clay/15"
                       onClick={() => applyCommonRoster(roster)}
                       type="button"
                     >
                       {roster.name}
                     </button>
-                    <span className="text-xs text-slate-500">{roster.groups.reduce((sum, group) => sum + group.members.length, 0)} 人</span>
-                    <button className="ml-auto text-xs text-slate-500" onClick={() => renameCommonRoster(roster.id)} type="button">改名</button>
-                    <button className="text-xs text-slate-500" onClick={() => replaceCommonRoster(roster.id)} type="button">更新</button>
-                    <button className="text-xs text-rose-700" onClick={() => deleteCommonRoster(roster.id)} type="button">移除</button>
+                    <span className="text-xs text-ink/50">{roster.groups.reduce((sum, group) => sum + group.members.length, 0)} 人</span>
+                    <button className="ml-auto text-xs text-ink/50" onClick={() => renameCommonRoster(roster.id)} type="button">改名</button>
+                    <button className="text-xs text-ink/50" onClick={() => replaceCommonRoster(roster.id)} type="button">更新</button>
+                    <button className="text-xs text-clay" onClick={() => deleteCommonRoster(roster.id)} type="button">移除</button>
                   </div>
                 ))}
-                {!commonRosters.length && <span className="text-sm text-slate-500">还没有常用组合，保存一次当前家庭成员后会显示在这里。</span>}
+                {!commonRosters.length && <span className="text-sm text-ink/50">还没有常用组合，保存一次当前家庭成员后会显示在这里。</span>}
               </div>
             </div>
-            <div className="mt-4 rounded-lg border border-slate-100 bg-white p-3">
+            <div className="mt-4 rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
               <strong className="text-sm">参与活动的成员</strong>
               <div className="mt-2 flex flex-wrap gap-2">
                 {ledger.members.map((member) => (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-sm text-slate-700" key={member.id}>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-paper-50/60 px-3 py-2 text-sm text-ink/70" key={member.id}>
                     {member.name}
-                    <button className="text-xs text-rose-700" onClick={() => deleteMember(member.id)} type="button">移除</button>
+                    <button className="text-xs text-clay" onClick={() => deleteMember(member.id)} type="button">移除</button>
                   </span>
                 ))}
-                {!ledger.members.length && <span className="text-sm text-slate-500">还没有成员。</span>}
+                {!ledger.members.length && <span className="text-sm text-ink/50">还没有成员。</span>}
               </div>
             </div>
             <div className="mt-4 grid gap-2">
               {ledger.groups.map((group) => (
-                <div className="rounded-lg border border-slate-100 bg-white p-3" key={group.id}>
+                <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur" key={group.id}>
                   <div className="flex items-start justify-between gap-3">
                     <strong>{group.name}</strong>
-                    <button className="text-sm text-rose-700" onClick={() => deleteGroup(group.id)}>删除</button>
+                    <button className="text-sm text-clay" onClick={() => deleteGroup(group.id)}>删除</button>
                   </div>
                   <div className="mt-2 grid gap-1">
                     {ledger.members.filter((member) => member.groupId === group.id).map((member) => (
                       <div className="flex items-center gap-2 text-sm" key={member.id}>
-                        <span className="rounded-full bg-mint-50 px-2 py-1 text-xs text-mint-700">{memberTypes[member.type]}</span>
+                        <span className="rounded-full border border-clay/15 bg-clay/10 px-2 py-1 text-xs text-clay">{memberTypes[member.type]}</span>
                         <span>{member.name}</span>
-                        <button className="ml-auto text-slate-500" onClick={() => deleteMember(member.id)}>移除</button>
+                        <button className="ml-auto text-ink/50" onClick={() => deleteMember(member.id)}>移除</button>
                       </div>
                     ))}
                   </div>
@@ -658,17 +667,17 @@ export function App() {
                 {filteredExpenses.map((expense) => {
                   const payer = ledger.members.find((member) => member.id === expense.payerId);
                   return (
-                    <article className="rounded-lg border border-slate-100 bg-white p-3" key={expense.id}>
+                    <article className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur" key={expense.id}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <strong>{expense.content || categories[expense.category]}</strong>
-                          <p className="mt-1 text-sm text-slate-500">
+                          <p className="mt-1 text-sm text-ink/50">
                             {categories[expense.category]} · {payer?.name || "未知"} · {expenseSplitModes[expense.splitMode]}
                           </p>
                         </div>
                         <strong className="tabular-nums">{money(getEffectiveAmount(expense))}</strong>
                       </div>
-                      {expense.useRechargeDiscount && <p className="mt-2 text-sm text-slate-500">原扣款 {money(expense.deductedAmount || 0)}，已按充值赠送折算。</p>}
+                      {expense.useRechargeDiscount && <p className="mt-2 text-sm text-ink/50">原扣款 {money(expense.deductedAmount || 0)}，已按充值赠送折算。</p>}
                       <div className="mt-3 flex gap-2">
                         <Button icon={<Pencil size={16} />} variant="ghost" type="button" onClick={() => editExpense(expense)}>编辑</Button>
                         <Button icon={<Trash2 size={16} />} variant="danger" type="button" onClick={() => deleteExpense(expense.id)}>删除</Button>
@@ -676,7 +685,7 @@ export function App() {
                     </article>
                   );
                 })}
-                {!filteredExpenses.length && <div className="rounded-lg border border-dashed border-slate-200 bg-white/70 p-4 text-sm text-slate-500">没有匹配的费用。</div>}
+                {!filteredExpenses.length && <div className="rounded-lg border border-dashed border-ink/15 bg-white/40 p-4 text-sm text-ink/50">没有匹配的费用。</div>}
               </div>
             </Panel>
           </div>
@@ -685,70 +694,70 @@ export function App() {
         {page === "settlement" && (
           <Panel title="结算结果" action={<Button variant="soft" type="button" onClick={copySummary}>复制总账单</Button>}>
             <div className="grid gap-4">
-              <div className="rounded-lg border border-slate-100 bg-gradient-to-br from-mint-50 to-slate-50 p-3">
-                <strong className="text-mint-800">📊 费用汇总</strong>
+              <div className="rounded-lg border border-ink/10 bg-paper-50/70 p-3 shadow-soft backdrop-blur">
+                <strong className="text-clay">费用汇总</strong>
                 <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
-                  <div className="rounded bg-white p-2">
-                    <p className="text-xs text-slate-600">总计费用</p>
-                    <p className="text-lg font-bold text-mint-700">{money(result.totalAmount)}</p>
+                  <div className="rounded bg-white/60 p-2">
+                    <p className="text-xs text-ink/60">总计费用</p>
+                    <p className="text-lg font-bold text-clay">{money(result.totalAmount)}</p>
                   </div>
-                  <div className="rounded bg-white p-2">
-                    <p className="text-xs text-slate-600">参与人数</p>
-                    <p className="text-lg font-bold text-slate-700">{ledger.members.length}</p>
+                  <div className="rounded bg-white/60 p-2">
+                    <p className="text-xs text-ink/60">参与人数</p>
+                    <p className="text-lg font-bold text-ink/75">{ledger.members.length}</p>
                   </div>
-                  <div className="rounded bg-white p-2">
-                    <p className="text-xs text-slate-600">参与家庭</p>
-                    <p className="text-lg font-bold text-slate-700">{ledger.groups.length}</p>
+                  <div className="rounded bg-white/60 p-2">
+                    <p className="text-xs text-ink/60">参与家庭</p>
+                    <p className="text-lg font-bold text-ink/75">{ledger.groups.length}</p>
                   </div>
-                  <div className="rounded bg-white p-2">
-                    <p className="text-xs text-slate-600">分类数</p>
-                    <p className="text-lg font-bold text-slate-700">{result.categoryStats.size}</p>
+                  <div className="rounded bg-white/60 p-2">
+                    <p className="text-xs text-ink/60">分类数</p>
+                    <p className="text-lg font-bold text-ink/75">{result.categoryStats.size}</p>
                   </div>
                 </div>
-                <div className="mt-3 border-t border-slate-200 pt-2">
-                  <p className="text-xs font-semibold text-slate-600">分类占比</p>
+                <div className="mt-3 border-t border-ink/10 pt-2">
+                  <p className="text-xs font-semibold text-ink/60">分类占比</p>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {[...result.categoryStats.entries()]
                       .sort((a, b) => b[1] - a[1])
                       .slice(0, 5)
                       .map(([category, amount]) => (
-                        <span key={category} className="inline-block rounded-full bg-white px-2 py-1 text-xs text-slate-700">
+                        <span key={category} className="inline-block rounded-full border border-ink/10 bg-white/60 px-2 py-1 text-xs text-ink/70">
                           {categories[category]}: {money(amount)}
                         </span>
                       ))}
                     {result.categoryStats.size > 5 && (
-                      <span className="inline-block rounded-full bg-white px-2 py-1 text-xs text-slate-500">
+                      <span className="inline-block rounded-full border border-ink/10 bg-white/60 px-2 py-1 text-xs text-ink/50">
                         ...还有 {result.categoryStats.size - 5} 项
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="rounded-lg border border-slate-100 bg-white p-3">
+              <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
                 <strong>主结算建议</strong>
                 <div className="mt-2 grid gap-2">
                   {result.groupSettlements.map((item) => (
                     <div className="flex flex-wrap items-center gap-2" key={`${item.fromId}-${item.toId}`}>
-                      <span>{item.fromName}</span><span className="rounded-full bg-mint-50 px-2 py-1 text-xs text-mint-700">转给</span><span>{item.toName}</span><strong>{money(item.amount)}</strong>
+                      <span>{item.fromName}</span><span className="rounded-full border border-clay/15 bg-clay/10 px-2 py-1 text-xs text-clay">转给</span><span>{item.toName}</span><strong>{money(item.amount)}</strong>
                     </div>
                   ))}
-                  {!result.groupSettlements.length && <p className="text-sm text-slate-500">大家已经基本持平。</p>}
+                  {!result.groupSettlements.length && <p className="text-sm text-ink/50">大家已经基本持平。</p>}
                 </div>
               </div>
               <details open={ledger.activity.enableInternalSettlement}>
-                <summary className="cursor-pointer text-sm text-slate-600">家庭内部参考</summary>
-                <div className="mt-2 rounded-lg border border-slate-100 bg-white p-3">
+                <summary className="cursor-pointer text-sm text-ink/60">家庭内部参考</summary>
+                <div className="mt-2 rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
                   {result.internalSettlements.map((item) => (
                     <div className="mb-2 flex flex-wrap items-center gap-2" key={`${item.groupId}-${item.fromId}-${item.toId}`}>
-                      <span>{item.groupName}：</span><span>{item.fromName}</span><span className="rounded-full bg-mint-50 px-2 py-1 text-xs text-mint-700">可转给</span><span>{item.toName}</span><strong>{money(item.amount)}</strong>
+                      <span>{item.groupName}：</span><span>{item.fromName}</span><span className="rounded-full border border-clay/15 bg-clay/10 px-2 py-1 text-xs text-clay">可转给</span><span>{item.toName}</span><strong>{money(item.amount)}</strong>
                     </div>
                   ))}
-                  {!result.internalSettlements.length && <p className="text-sm text-slate-500">暂无需要展示的家庭内部参考。</p>}
+                  {!result.internalSettlements.length && <p className="text-sm text-ink/50">暂无需要展示的家庭内部参考。</p>}
                 </div>
               </details>
               <SummaryBlock title="简洁版总结" text={compactSummary(ledger, result)} />
               <details>
-                <summary className="cursor-pointer text-sm text-slate-600">详细版总结</summary>
+                <summary className="cursor-pointer text-sm text-ink/60">详细版总结</summary>
                 <SummaryBlock title="" text={detailedSummary(ledger, result)} />
               </details>
             </div>
@@ -756,13 +765,70 @@ export function App() {
         )}
       </div>
 
-      <nav className="fixed inset-x-3 bottom-3 z-10 grid grid-cols-4 gap-1 rounded-lg border border-slate-100 bg-white/95 p-1 shadow-soft backdrop-blur sm:hidden">
+      <nav className="fixed inset-x-3 bottom-3 z-10 grid grid-cols-4 gap-1 rounded-lg border border-ink/10 bg-white/75 p-1 shadow-glass backdrop-blur-xl sm:hidden">
         <MobileNavButton icon={<Home size={18} />} active={page === "activities"} onClick={() => setPage("activities")}>活动</MobileNavButton>
         <MobileNavButton icon={<Users size={18} />} active={page === "settings"} onClick={() => setPage("settings")}>设置</MobileNavButton>
         <MobileNavButton icon={<ReceiptText size={18} />} active={page === "expenses"} onClick={() => setPage("expenses")}>费用</MobileNavButton>
         <MobileNavButton icon={<Calculator size={18} />} active={page === "settlement"} onClick={() => setPage("settlement")}>结算</MobileNavButton>
       </nav>
     </main>
+  );
+}
+
+function HeroVisual({ ledger, result }: { ledger: LedgerState; result: ReturnType<typeof calculateSettlement> }) {
+  const topCategories = [...result.categoryStats.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  const maxCategory = Math.max(1, ...topCategories.map(([, amount]) => amount));
+  const nextSettlement = result.groupSettlements[0];
+
+  return (
+    <aside className="hero-visual overflow-hidden rounded-lg border border-ink/10 bg-white/50 p-4 shadow-glass backdrop-blur-xl">
+      <div className="relative z-10 flex items-start justify-between gap-4">
+        <div>
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-ink/50">Balance sheet</span>
+          <strong className="mt-2 block font-display text-4xl font-normal leading-none text-ink">{money(result.totalAmount)}</strong>
+        </div>
+        <span className="rounded-full border border-ink/10 bg-paper-50/70 px-2.5 py-1 text-[11px] text-ink/60">
+          {activityTypes[ledger.activity.type]}
+        </span>
+      </div>
+
+      <div className="relative z-10 mt-8 grid gap-2">
+        {topCategories.map(([category, amount]) => (
+          <div className="grid gap-1" key={category}>
+            <div className="flex items-center justify-between text-xs text-ink/50">
+              <span>{categories[category]}</span>
+              <span className="tabular-nums">{money(amount)}</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-ink/10">
+              <div
+                className="h-full rounded-full bg-clay"
+                style={{ width: `${Math.max(12, (amount / maxCategory) * 100)}%` }}
+              />
+            </div>
+          </div>
+        ))}
+        {!topCategories.length && (
+          <div className="rounded-lg border border-dashed border-ink/10 bg-white/40 p-3 text-sm text-ink/50">
+            还没有费用记录。
+          </div>
+        )}
+      </div>
+
+      <div className="relative z-10 mt-8 rounded-lg border border-ink/10 bg-paper-50/70 p-3">
+        <span className="text-[11px] uppercase tracking-[0.18em] text-moss">Next transfer</span>
+        {nextSettlement ? (
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            <span className="font-semibold text-ink">{nextSettlement.fromName}</span> 转给{" "}
+            <span className="font-semibold text-ink">{nextSettlement.toName}</span>{" "}
+            <span className="font-semibold tabular-nums text-clay">{money(nextSettlement.amount)}</span>
+          </p>
+        ) : (
+          <p className="mt-2 text-sm leading-6 text-ink/60">当前没有待结算转账。</p>
+        )}
+      </div>
+    </aside>
   );
 }
 
@@ -785,7 +851,7 @@ function ExpenseForm({ draft, editing, ledger, onCancel, onChange, onSubmit }: {
   return (
     <form className="grid gap-3" onSubmit={onSubmit}>
       {!payers.length && (
-        <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-800">
+        <div className="rounded-lg border border-clay/20 bg-clay/10 px-3 py-2 text-sm leading-6 text-clay">
           先到“设置”里添加一位大人成员，再回来记账。孩子默认不能作为付款人。
         </div>
       )}
@@ -805,28 +871,28 @@ function ExpenseForm({ draft, editing, ledger, onCancel, onChange, onSubmit }: {
       <Field label="具体内容"><input value={draft.content} onChange={(event) => onChange({ ...draft, content: event.target.value })} placeholder="例如 从酒店到景区打车费" /></Field>
       <Field label="这笔钱怎么算">
         <select value={draft.splitMode} onChange={(event) => onChange({ ...draft, splitMode: event.target.value as ExpenseSplitMode })}>{options(expenseSplitModes)}</select>
-        <span className="text-xs leading-5 text-slate-500">
+        <span className="text-xs leading-5 text-ink/50">
           活动默认当前是：{defaultSplitModes[ledger.activity.defaultSplitMode]}。普通费用不用纠结，直接用这个即可。
         </span>
       </Field>
       <details>
-        <summary className="cursor-pointer text-sm text-slate-600">选择参与人/家庭</summary>
+        <summary className="cursor-pointer text-sm text-ink/60">选择参与人/家庭</summary>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-slate-100 bg-white p-3">
+          <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
             <strong className="text-sm">成员</strong>
             <div className="mt-2 grid gap-1">
               {ledger.members.map((member) => (
-                <label className="flex items-center gap-2 text-sm text-slate-600" key={member.id}>
+                <label className="flex items-center gap-2 text-sm text-ink/60" key={member.id}>
                   <input type="checkbox" checked={draft.memberIds.includes(member.id)} onChange={() => toggleId("memberIds", member.id)} /> {member.name}
                 </label>
               ))}
             </div>
           </div>
-          <div className="rounded-lg border border-slate-100 bg-white p-3">
+          <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
             <strong className="text-sm">家庭</strong>
             <div className="mt-2 grid gap-1">
               {ledger.groups.map((group) => (
-                <label className="flex items-center gap-2 text-sm text-slate-600" key={group.id}>
+                <label className="flex items-center gap-2 text-sm text-ink/60" key={group.id}>
                   <input type="checkbox" checked={draft.groupIds.includes(group.id)} onChange={() => toggleId("groupIds", group.id)} /> {group.name}
                 </label>
               ))}
@@ -835,8 +901,8 @@ function ExpenseForm({ draft, editing, ledger, onCancel, onChange, onSubmit }: {
         </div>
       </details>
       <details open={draft.useRechargeDiscount}>
-        <summary className="cursor-pointer text-sm text-slate-600">充值赠送折算</summary>
-        <label className="mt-2 flex items-center gap-2 text-sm text-slate-600">
+        <summary className="cursor-pointer text-sm text-ink/60">充值赠送折算</summary>
+        <label className="mt-2 flex items-center gap-2 text-sm text-ink/60">
           <input type="checkbox" checked={draft.useRechargeDiscount} onChange={(event) => onChange({ ...draft, useRechargeDiscount: event.target.checked })} />
           这笔使用充值赠送折算
         </label>
@@ -856,9 +922,9 @@ function ExpenseForm({ draft, editing, ledger, onCancel, onChange, onSubmit }: {
 
 function Panel({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-slate-100 bg-white/90 p-4 shadow-soft">
+    <section className="rounded-lg border border-ink/10 bg-white/50 p-4 shadow-glass backdrop-blur-xl">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+        <h2 className="font-display text-2xl font-normal leading-tight text-ink">{title}</h2>
         {action}
       </div>
       {children}
@@ -869,7 +935,7 @@ function Panel({ title, action, children }: { title: string; action?: React.Reac
 function NavButton({ active, children, icon, onClick }: { active: boolean; children: React.ReactNode; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm ${active ? "bg-mint-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm ${active ? "bg-ink text-paper-50 shadow-soft" : "text-ink/60 hover:bg-white/40"}`}
       onClick={onClick}
       type="button"
     >
@@ -882,7 +948,7 @@ function NavButton({ active, children, icon, onClick }: { active: boolean; child
 function MobileNavButton({ active, children, icon, onClick }: { active: boolean; children: React.ReactNode; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button
-      className={`grid min-h-12 place-items-center rounded-lg px-1 py-1 text-[11px] ${active ? "bg-mint-600 text-white" : "text-slate-600"}`}
+      className={`grid min-h-12 place-items-center rounded-lg px-1 py-1 text-[11px] ${active ? "bg-ink text-paper-50 shadow-soft" : "text-ink/60"}`}
       onClick={onClick}
       type="button"
     >
@@ -893,25 +959,25 @@ function MobileNavButton({ active, children, icon, onClick }: { active: boolean;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="grid gap-1 text-sm text-slate-600"><span>{label}</span>{children}</label>;
+  return <label className="grid gap-1 text-sm text-ink/60"><span>{label}</span>{children}</label>;
 }
 
 function Button({ children, icon, variant = "primary", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { icon?: React.ReactNode; variant?: "primary" | "soft" | "ghost" | "danger" }) {
   const styles = {
-    primary: "bg-mint-600 text-white hover:bg-mint-700",
-    soft: "bg-sky-50 text-slate-700 hover:bg-sky-100",
-    ghost: "bg-transparent text-slate-600 hover:bg-slate-50",
-    danger: "bg-rose-50 text-rose-700 hover:bg-rose-100",
+    primary: "bg-ink text-paper-50 hover:bg-clay shadow-soft",
+    soft: "border border-ink/10 bg-paper-50/70 text-ink/75 hover:bg-white/70",
+    ghost: "bg-transparent text-ink/60 hover:bg-white/40",
+    danger: "border border-clay/15 bg-clay/10 text-clay hover:bg-clay/15",
   };
   return <button className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm ${styles[variant]}`} {...props}>{icon}{children}</button>;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-soft"><span className="text-xs text-slate-500">{label}</span><strong className="mt-1 block text-xl tabular-nums">{value}</strong></div>;
+  return <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-glass backdrop-blur-xl"><span className="text-xs uppercase tracking-[0.14em] text-ink/50">{label}</span><strong className="mt-1 block font-display text-2xl font-normal tabular-nums text-ink">{value}</strong></div>;
 }
 
 function SummaryBlock({ title, text }: { title: string; text: string }) {
-  return <div>{title && <h3 className="mb-2 font-semibold">{title}</h3>}<pre className="whitespace-pre-wrap rounded-lg border border-dashed border-mint-100 bg-linen p-3 text-sm leading-7 text-slate-700">{text}</pre></div>;
+  return <div>{title && <h3 className="mb-2 font-semibold text-ink">{title}</h3>}<pre className="whitespace-pre-wrap rounded-lg border border-dashed border-clay/20 bg-linen/75 p-3 text-sm leading-7 text-ink/70">{text}</pre></div>;
 }
 
 function options<T extends string>(items: Record<T, string>) {
