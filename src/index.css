@@ -3,13 +3,29 @@
 @tailwind utilities;
 
 :root {
+  --bg:      #f3ecdd;
+  --card:    #fdfaf4;
+  --card-pure: #ffffff;
+  --ink:     #1a1410;
+  --ink-70:  rgba(26,20,16,0.7);
+  --ink-50:  rgba(26,20,16,0.5);
+  --ink-30:  rgba(26,20,16,0.3);
+  --ink-08:  rgba(26,20,16,0.08);
+  --accent:  #ff5e29;
+  --accent-2:#d94a1f;
+  --accent-soft: #ffe2d4;
+
   font-family:
-    "Avenir Next", "Gill Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", ui-sans-serif, system-ui,
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
-  color: #24211d;
-  background: #f5ede0;
+    "Onest",
+    "Noto Sans SC", "PingFang SC", "Hiragino Sans GB",
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Microsoft YaHei", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
   font-synthesis-weight: none;
   text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "ss02";
 }
 
 * {
@@ -20,16 +36,19 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:
-    linear-gradient(90deg, rgba(36, 33, 29, 0.035) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(36, 33, 29, 0.03) 1px, transparent 1px),
-    linear-gradient(180deg, #fbf7ef 0%, #f5ede0 52%, #eadfce 100%);
-  background-size: 28px 28px, 28px 28px, auto;
-  color: #24211d;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Tabular numbers everywhere they matter */
+.tabular-nums,
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 ::selection {
-  background: rgba(188, 87, 57, 0.22);
+  background: rgba(255, 94, 41, 0.22);
 }
 
 button,
@@ -39,49 +58,74 @@ textarea {
   font: inherit;
 }
 
+/* ── Inputs — cleaner, less "stationery"-feeling than before ── */
 input,
 select,
 textarea {
-  min-height: 42px;
+  min-height: 44px;
   width: 100%;
-  border-radius: 8px;
-  border: 1px solid rgba(36, 33, 29, 0.12);
-  background: rgba(255, 252, 246, 0.72);
-  padding: 9px 11px;
-  color: #24211d;
+  border-radius: 12px;
+  border: 1px solid var(--ink-08);
+  background: var(--card-pure);
+  padding: 11px 13px;
+  color: var(--ink);
   outline: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow: none;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-30);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(188, 87, 57, 0.58);
-  background: rgba(255, 252, 246, 0.92);
-  box-shadow: 0 0 0 3px rgba(188, 87, 57, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  border-color: var(--accent);
+  background: var(--card-pure);
+  box-shadow: 0 0 0 3px rgba(255, 94, 41, 0.15);
 }
 
 input[type="checkbox"] {
   min-height: 0;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  border-radius: 4px;
-  accent-color: #bc5739;
+  border-radius: 5px;
+  accent-color: var(--accent);
   flex: 0 0 auto;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-50) 50%),
+    linear-gradient(135deg, var(--ink-50) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 19px,
+    calc(100% - 13px) 19px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 32px;
 }
 
 button {
   transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
-button:hover {
+button:not(:disabled):hover {
   transform: translateY(-1px);
 }
 
-button:active {
+button:not(:disabled):active {
   transform: translateY(0);
+}
+
+/* App shell — soft warm gradient backdrop, no grid */
+.app-shell {
+  position: relative;
 }
 
 .app-shell::before {
@@ -91,23 +135,37 @@ button:active {
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(120deg, rgba(188, 87, 57, 0.09), transparent 28%),
-    linear-gradient(240deg, rgba(102, 112, 90, 0.10), transparent 32%);
+    radial-gradient(60% 40% at 88% 12%, rgba(255,94,41,0.10), transparent 70%),
+    radial-gradient(50% 35% at 8% 88%, rgba(75,90,53,0.08),  transparent 70%);
 }
 
-.hero-visual {
+/* Hero card — dark, with warm radial glow */
+.citrus-hero {
   position: relative;
   isolation: isolate;
+  background:
+    radial-gradient(110% 80% at 95% 8%, rgba(255,94,41,0.55), transparent 55%),
+    #1d1814;
+  color: #fdfaf4;
 }
 
-.hero-visual::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(90deg, rgba(36, 33, 29, 0.055) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(36, 33, 29, 0.045) 1px, transparent 1px);
-  background-size: 22px 22px;
-  opacity: 0.72;
+/* Hide scrollbars on horizontal chip rows */
+.chip-row {
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+
+/* Pretty pre block for the summary text */
+pre.bill-summary {
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink-70);
+  background: var(--card-pure);
+  border: 1px dashed var(--ink-08);
+  border-radius: 14px;
+  padding: 14px 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
 }

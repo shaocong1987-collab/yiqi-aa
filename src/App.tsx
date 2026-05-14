@@ -19,6 +19,41 @@ import { deleteLedger as deleteStoredLedger, loadLedger, loadLedgers, saveLedger
 import type { Category, DefaultSplitMode, Expense, ExpenseSplitMode, LedgerState, MemberType } from "./types";
 import { downloadJson, money, timestamp, today, uid } from "./utils";
 
+// ──────────────────────────────────────────────────────────────────────
+// Citrus design — category pastel palette + single-char label
+// ──────────────────────────────────────────────────────────────────────
+const CAT_COLORS: Record<Category, { bg: string; fg: string }> = {
+  meal:       { bg: "#ffd5c2", fg: "#a23a16" },
+  drink:      { bg: "#e8d8ee", fg: "#5a3776" },
+  food:       { bg: "#ffe9b8", fg: "#8a6010" },
+  hotel:      { bg: "#d4e0c5", fg: "#4a6128" },
+  traffic:    { bg: "#cfdef0", fg: "#23477a" },
+  fuel:       { bg: "#cfdef0", fg: "#23477a" },
+  ticket:     { bg: "#cfdef0", fg: "#23477a" },
+  experience: { bg: "#fcd6e3", fg: "#923757" },
+  equipment:  { bg: "#e6e0d4", fg: "#5a4a30" },
+  children:   { bg: "#ffe1d5", fg: "#a23a16" },
+  medical:    { bg: "#ffd9d9", fg: "#a23a16" },
+  service:    { bg: "#e6e0d4", fg: "#5a4a30" },
+  other:      { bg: "#e6e0d4", fg: "#5a4a30" },
+};
+const CAT_LABEL: Record<Category, string> = {
+  meal: "餐", drink: "酒", food: "食", hotel: "宿",
+  traffic: "行", fuel: "油", ticket: "票", experience: "玩",
+  equipment: "装", children: "童", medical: "医", service: "杂", other: "他",
+};
+function CategoryChip({ category, size = 36 }: { category: Category; size?: number }) {
+  const c = CAT_COLORS[category] || CAT_COLORS.other;
+  return (
+    <span
+      className="inline-flex flex-shrink-0 items-center justify-center rounded-xl font-display font-semibold"
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.42), background: c.bg, color: c.fg }}
+    >
+      {CAT_LABEL[category] || "他"}
+    </span>
+  );
+}
+
 type ExpenseDraft = {
   amount: string;
   payerId: string;
@@ -426,28 +461,30 @@ export function App() {
 
   return (
     <main className="app-shell mx-auto min-h-screen w-full max-w-6xl px-4 pb-28 pt-6 font-body text-ink sm:px-6 lg:px-8">
-      <header className="grid items-end gap-6 border-b border-ink/10 pb-6 lg:grid-cols-[1fr_380px]">
+      <header className="grid items-end gap-6 pb-2 lg:grid-cols-[1fr_400px]">
         <div>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-clay">Local ledger · AA settlement</span>
-          <h1 className="mt-3 font-display text-5xl font-normal leading-none text-ink sm:text-6xl">一起A了吧</h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-ink/60">
+          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-clay">Local ledger · AA settlement</span>
+          <h1 className="mt-3 font-display text-5xl font-semibold leading-[0.95] tracking-[-0.03em] text-ink sm:text-6xl">一起<span className="font-serif italic text-clay">A</span>了吧</h1>
+          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-ink/65">
             聚餐、露营、旅行的共同支出，保存在浏览器本地。清楚记录谁垫付、怎么算、最后转给谁。
           </p>
-          <div className="mt-5 flex flex-wrap gap-2 text-xs text-ink/60">
-            <span className="rounded-full border border-ink/10 bg-white/30 px-3 py-1.5 backdrop-blur">本地优先</span>
-            <span className="rounded-full border border-ink/10 bg-white/30 px-3 py-1.5 backdrop-blur">离线可用</span>
-            <span className="rounded-full border border-ink/10 bg-white/30 px-3 py-1.5 backdrop-blur">家庭分摊</span>
+          <div className="mt-5 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.14em]">
+            <span className="rounded-full bg-paper-50 px-3 py-1.5 text-ink/65 shadow-soft">本地优先</span>
+            <span className="rounded-full bg-paper-50 px-3 py-1.5 text-ink/65 shadow-soft">离线可用</span>
+            <span className="rounded-full bg-paper-50 px-3 py-1.5 text-ink/65 shadow-soft">家庭分摊</span>
           </div>
         </div>
         <HeroVisual ledger={ledger} result={result} />
       </header>
 
       {message && (
-        <div className="mt-5 rounded-lg border border-clay/20 bg-white/50 px-3 py-2 text-sm text-clay shadow-soft backdrop-blur-xl">
+        <div className="mt-5 flex items-center gap-2 rounded-xl bg-clay/12 px-4 py-3 text-sm font-medium text-clay shadow-soft">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-clay" />
           {message}
         </div>
       )}
-      <div className={`mt-4 rounded-lg border px-3 py-2 text-sm shadow-soft backdrop-blur-xl ${offlineReady ? "border-clay/20 bg-white/50 text-clay" : "border-ink/10 bg-white/40 text-ink/50"}`}>
+      <div className={`mt-4 rounded-xl px-4 py-3 text-sm shadow-soft ${offlineReady ? "bg-paper-50 text-ink/70" : "bg-paper-100 text-ink/55"}`}>
+        <span className="mr-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink/40">PWA</span>{" "}
         {offlineReady
           ? "离线访问已准备好。添加到手机主屏幕后，电脑关闭也能打开应用。"
           : canUsePwaOffline
@@ -462,7 +499,7 @@ export function App() {
         <Stat label="成员" value={String(ledger.members.length)} />
       </section>
 
-      <nav className="mt-5 hidden rounded-lg border border-ink/10 bg-white/40 p-2 shadow-glass backdrop-blur-xl sm:flex sm:flex-wrap sm:gap-2">
+      <nav className="mt-5 hidden rounded-2xl bg-paper-50 p-2 shadow-soft sm:flex sm:flex-wrap sm:gap-1">
         <NavButton icon={<Home size={16} />} active={page === "activities"} onClick={() => setPage("activities")}>活动</NavButton>
         <NavButton icon={<Users size={16} />} active={page === "settings"} onClick={() => setPage("settings")}>设置</NavButton>
         <NavButton icon={<ReceiptText size={16} />} active={page === "expenses"} onClick={() => setPage("expenses")}>费用</NavButton>
@@ -474,7 +511,7 @@ export function App() {
           <Panel title="活动列表" action={<Button icon={<Plus size={16} />} type="button" onClick={createNewActivity}>创建活动</Button>}>
             <div className="grid gap-3">
               {(activityList.length ? activityList : [ledger]).map((item) => (
-                <article className={`rounded-lg border bg-white/55 p-4 shadow-soft backdrop-blur ${item.activity.id === ledger.activity.id ? "border-clay/25 ring-2 ring-clay/15" : "border-ink/10"}`} key={item.activity.id}>
+                <article className={`rounded-2xl bg-paper-50 p-4 shadow-soft transition ${item.activity.id === ledger.activity.id ? "ring-2 ring-clay/30" : ""}`} key={item.activity.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <strong className="text-lg">{item.activity.name}</strong>
@@ -500,12 +537,12 @@ export function App() {
                   </div>
                 </article>
               ))}
-              <div className="rounded-lg border border-dashed border-ink/15 bg-white/40 p-4 text-sm leading-6 text-ink/60">
+              <div className="rounded-2xl border border-dashed border-ink/15 p-4 text-[13px] leading-6 text-ink/55">
                 活动记录保存在当前浏览器本地。换手机或清理浏览器数据前，记得导出 JSON 备份。
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button icon={<Download size={16} />} variant="soft" type="button" onClick={() => downloadJson(`${ledger.activity.name}-账本.json`, ledger)}>导出 JSON</Button>
-                <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-ink/10 bg-paper-50/70 px-3 py-2 text-sm text-ink/75 hover:bg-white/70">
+                <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl bg-paper-100 px-4 py-2 text-sm font-display font-semibold text-ink/80 transition hover:bg-paper-200">
                   <FileUp size={16} /> 导入 JSON
                   <input hidden type="file" accept="application/json" onChange={importLedger} />
                 </label>
@@ -531,7 +568,7 @@ export function App() {
                 <Field label="开始日期"><input type="date" name="startDate" defaultValue={ledger.activity.startDate} /></Field>
                 <Field label="结束日期"><input type="date" name="endDate" defaultValue={ledger.activity.endDate} /></Field>
               </div>
-              <label className="flex items-start gap-2 rounded-lg border border-ink/10 bg-paper-50/60 px-3 py-2 text-sm text-ink/60">
+              <label className="flex items-start gap-2 rounded-xl bg-paper-100 px-4 py-3 text-sm text-ink/65">
                 <input type="checkbox" name="enableInternalSettlement" defaultChecked={ledger.activity.enableInternalSettlement} />
                 <span>
                   <span className="block text-ink">显示家庭内参考分摊</span>
@@ -541,7 +578,7 @@ export function App() {
               <div className="flex flex-wrap gap-2">
                 <Button icon={<Save size={16} />} type="submit">保存活动</Button>
                 <Button icon={<Download size={16} />} variant="soft" type="button" onClick={() => downloadJson(`${ledger.activity.name}-账本.json`, ledger)}>导出 JSON</Button>
-                <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-ink/10 bg-paper-50/70 px-3 py-2 text-sm text-ink/75 hover:bg-white/70">
+                <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl bg-paper-100 px-4 py-2 text-sm font-display font-semibold text-ink/80 transition hover:bg-paper-200">
                   <FileUp size={16} /> 导入 JSON
                   <input hidden type="file" accept="application/json" onChange={importLedger} />
                 </label>
@@ -573,16 +610,16 @@ export function App() {
                 <div className="flex items-end"><Button icon={<Plus size={16} />} type="submit">添加成员</Button></div>
               </div>
             </form>
-            <div className="mt-4 rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
+            <div className="mt-4 rounded-2xl bg-paper-100 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <strong className="text-sm">常用家庭/成员</strong>
+                <strong className="font-display text-[15px] font-semibold">常用家庭/成员</strong>
                 <Button variant="soft" type="button" onClick={saveCurrentRoster}>保存当前组合</Button>
               </div>
               <div className="mt-3 grid gap-2">
                 {commonRosters.map((roster) => (
-                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-ink/10 bg-paper-50/60 p-2" key={roster.id}>
+                  <div className="flex flex-wrap items-center gap-2 rounded-xl bg-paper-50 p-2" key={roster.id}>
                     <button
-                      className="rounded-full border border-clay/15 bg-clay/10 px-3 py-2 text-sm text-clay hover:bg-clay/15"
+                      className="rounded-full bg-clay/12 px-3 py-2 font-display text-sm font-semibold text-clay transition hover:bg-clay/18"
                       onClick={() => applyCommonRoster(roster)}
                       type="button"
                     >
@@ -597,11 +634,11 @@ export function App() {
                 {!commonRosters.length && <span className="text-sm text-ink/50">还没有常用组合，保存一次当前家庭成员后会显示在这里。</span>}
               </div>
             </div>
-            <div className="mt-4 rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
-              <strong className="text-sm">参与活动的成员</strong>
+            <div className="mt-4 rounded-2xl bg-paper-50 p-4 shadow-soft">
+              <strong className="font-display text-[15px] font-semibold">参与活动的成员</strong>
               <div className="mt-2 flex flex-wrap gap-2">
                 {ledger.members.map((member) => (
-                  <span className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-paper-50/60 px-3 py-2 text-sm text-ink/70" key={member.id}>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-paper-100 px-3 py-2 text-sm text-ink/75" key={member.id}>
                     {member.name}
                     <button className="text-xs text-clay" onClick={() => deleteMember(member.id)} type="button">移除</button>
                   </span>
@@ -611,15 +648,15 @@ export function App() {
             </div>
             <div className="mt-4 grid gap-2">
               {ledger.groups.map((group) => (
-                <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur" key={group.id}>
+                <div className="rounded-2xl bg-paper-50 p-4 shadow-soft" key={group.id}>
                   <div className="flex items-start justify-between gap-3">
-                    <strong>{group.name}</strong>
+                    <strong className="font-display text-base font-semibold">{group.name}</strong>
                     <button className="text-sm text-clay" onClick={() => deleteGroup(group.id)}>删除</button>
                   </div>
                   <div className="mt-2 grid gap-1">
                     {ledger.members.filter((member) => member.groupId === group.id).map((member) => (
                       <div className="flex items-center gap-2 text-sm" key={member.id}>
-                        <span className="rounded-full border border-clay/15 bg-clay/10 px-2 py-1 text-xs text-clay">{memberTypes[member.type]}</span>
+                        <span className="rounded-full bg-clay/12 px-2 py-0.5 text-xs font-medium text-clay">{memberTypes[member.type]}</span>
                         <span>{member.name}</span>
                         <button className="ml-auto text-ink/50" onClick={() => deleteMember(member.id)}>移除</button>
                       </div>
@@ -666,90 +703,107 @@ export function App() {
               <div className="mt-4 grid gap-3">
                 {filteredExpenses.map((expense) => {
                   const payer = ledger.members.find((member) => member.id === expense.payerId);
+                  const ignored = expense.splitMode === "ignore";
                   return (
-                    <article className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur" key={expense.id}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <strong>{expense.content || categories[expense.category]}</strong>
-                          <p className="mt-1 text-sm text-ink/50">
-                            {categories[expense.category]} · {payer?.name || "未知"} · {expenseSplitModes[expense.splitMode]}
-                          </p>
+                    <article className="flex items-start gap-3 rounded-2xl bg-paper-50 p-3.5 shadow-soft" key={expense.id}>
+                      <CategoryChip category={expense.category} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <strong className="truncate font-display text-[15px] font-semibold text-ink">{expense.content || categories[expense.category]}</strong>
+                          <span className={`font-display text-[16px] font-semibold tabular-nums tracking-tight ${ignored ? "text-ink/35 line-through" : "text-ink"}`}>{money(getEffectiveAmount(expense))}</span>
                         </div>
-                        <strong className="tabular-nums">{money(getEffectiveAmount(expense))}</strong>
-                      </div>
-                      {expense.useRechargeDiscount && <p className="mt-2 text-sm text-ink/50">原扣款 {money(expense.deductedAmount || 0)}，已按充值赠送折算。</p>}
-                      <div className="mt-3 flex gap-2">
-                        <Button icon={<Pencil size={16} />} variant="ghost" type="button" onClick={() => editExpense(expense)}>编辑</Button>
-                        <Button icon={<Trash2 size={16} />} variant="danger" type="button" onClick={() => deleteExpense(expense.id)}>删除</Button>
+                        <p className="mt-1 text-[12.5px] text-ink/55">
+                          {categories[expense.category]} · {payer?.name || "未知"} · <span className={ignored ? "text-clay" : ""}>{expenseSplitModes[expense.splitMode]}</span>
+                          {expense.expenseDate && <span className="ml-1 font-mono text-ink/40">· {expense.expenseDate.slice(5)}</span>}
+                        </p>
+                        {expense.useRechargeDiscount && <p className="mt-1.5 text-[12px] text-ink/45">原扣款 {money(expense.deductedAmount || 0)} · 已按充值赠送折算</p>}
+                        <div className="mt-2.5 flex gap-2">
+                          <Button icon={<Pencil size={14} />} variant="ghost" type="button" onClick={() => editExpense(expense)}>编辑</Button>
+                          <Button icon={<Trash2 size={14} />} variant="danger" type="button" onClick={() => deleteExpense(expense.id)}>删除</Button>
+                        </div>
                       </div>
                     </article>
                   );
                 })}
-                {!filteredExpenses.length && <div className="rounded-lg border border-dashed border-ink/15 bg-white/40 p-4 text-sm text-ink/50">没有匹配的费用。</div>}
+                {!filteredExpenses.length && <div className="rounded-2xl border border-dashed border-ink/15 p-5 text-center text-sm text-ink/45">没有匹配的费用。</div>}
               </div>
             </Panel>
           </div>
         )}
 
         {page === "settlement" && (
-          <Panel title="结算结果" action={<Button variant="soft" type="button" onClick={copySummary}>复制总账单</Button>}>
+          <Panel title="结算结果" action={<Button variant="accent" type="button" onClick={copySummary}>复制总账单</Button>}>
             <div className="grid gap-4">
-              <div className="rounded-lg border border-ink/10 bg-paper-50/70 p-3 shadow-soft backdrop-blur">
-                <strong className="text-clay">费用汇总</strong>
+              <div className="rounded-2xl bg-paper-100 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45">Summary · 费用汇总</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-clay">{result.totalAmount > 0 ? "Settled" : "Empty"}</span>
+                </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
-                  <div className="rounded bg-white/60 p-2">
-                    <p className="text-xs text-ink/60">总计费用</p>
-                    <p className="text-lg font-bold text-clay">{money(result.totalAmount)}</p>
+                  <div className="rounded-xl bg-paper-50 p-3">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">总计费用</p>
+                    <p className="mt-1 font-display text-xl font-semibold tabular-nums tracking-tight text-clay">{money(result.totalAmount)}</p>
                   </div>
-                  <div className="rounded bg-white/60 p-2">
-                    <p className="text-xs text-ink/60">参与人数</p>
-                    <p className="text-lg font-bold text-ink/75">{ledger.members.length}</p>
+                  <div className="rounded-xl bg-paper-50 p-3">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">参与人数</p>
+                    <p className="mt-1 font-display text-xl font-semibold tabular-nums tracking-tight text-ink">{ledger.members.length}</p>
                   </div>
-                  <div className="rounded bg-white/60 p-2">
-                    <p className="text-xs text-ink/60">参与家庭</p>
-                    <p className="text-lg font-bold text-ink/75">{ledger.groups.length}</p>
+                  <div className="rounded-xl bg-paper-50 p-3">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">参与家庭</p>
+                    <p className="mt-1 font-display text-xl font-semibold tabular-nums tracking-tight text-ink">{ledger.groups.length}</p>
                   </div>
-                  <div className="rounded bg-white/60 p-2">
-                    <p className="text-xs text-ink/60">分类数</p>
-                    <p className="text-lg font-bold text-ink/75">{result.categoryStats.size}</p>
+                  <div className="rounded-xl bg-paper-50 p-3">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">分类数</p>
+                    <p className="mt-1 font-display text-xl font-semibold tabular-nums tracking-tight text-ink">{result.categoryStats.size}</p>
                   </div>
                 </div>
-                <div className="mt-3 border-t border-ink/10 pt-2">
-                  <p className="text-xs font-semibold text-ink/60">分类占比</p>
-                  <div className="mt-1 flex flex-wrap gap-1">
+                <div className="mt-3 border-t border-ink/10 pt-3">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">分类占比</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
                     {[...result.categoryStats.entries()]
                       .sort((a, b) => b[1] - a[1])
                       .slice(0, 5)
                       .map(([category, amount]) => (
-                        <span key={category} className="inline-block rounded-full border border-ink/10 bg-white/60 px-2 py-1 text-xs text-ink/70">
-                          {categories[category]}: {money(amount)}
+                        <span key={category} className="inline-flex items-center gap-1.5 rounded-full bg-paper-50 px-2.5 py-1 text-xs text-ink/70">
+                          <span className="h-2 w-2 rounded-full" style={{ background: (CAT_COLORS[category] || CAT_COLORS.other).fg }} />
+                          {categories[category]} <span className="font-mono tabular-nums text-ink/55">{money(amount)}</span>
                         </span>
                       ))}
                     {result.categoryStats.size > 5 && (
-                      <span className="inline-block rounded-full border border-ink/10 bg-white/60 px-2 py-1 text-xs text-ink/50">
-                        ...还有 {result.categoryStats.size - 5} 项
+                      <span className="inline-block rounded-full bg-paper-50 px-2.5 py-1 text-xs text-ink/45">
+                        …还有 {result.categoryStats.size - 5} 项
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
-                <strong>主结算建议</strong>
-                <div className="mt-2 grid gap-2">
+              <div className="rounded-2xl bg-paper-50 p-4 shadow-soft">
+                <div className="flex items-baseline justify-between">
+                  <strong className="font-display text-lg font-semibold">主结算建议</strong>
+                  <span className="font-mono text-[11px] text-ink/45">{result.groupSettlements.length} 笔转账</span>
+                </div>
+                <div className="mt-3 grid gap-2">
                   {result.groupSettlements.map((item) => (
-                    <div className="flex flex-wrap items-center gap-2" key={`${item.fromId}-${item.toId}`}>
-                      <span>{item.fromName}</span><span className="rounded-full border border-clay/15 bg-clay/10 px-2 py-1 text-xs text-clay">转给</span><span>{item.toName}</span><strong>{money(item.amount)}</strong>
+                    <div className="flex flex-wrap items-center gap-2 rounded-xl bg-paper-100 px-3 py-2.5" key={`${item.fromId}-${item.toId}`}>
+                      <span className="text-[15px] text-ink/75">{item.fromName}</span>
+                      <span className="font-display text-lg font-semibold text-clay">→</span>
+                      <span className="text-[15px] font-medium text-ink">{item.toName}</span>
+                      <strong className="ml-auto font-display text-[17px] font-semibold tabular-nums tracking-tight text-ink">{money(item.amount)}</strong>
                     </div>
                   ))}
                   {!result.groupSettlements.length && <p className="text-sm text-ink/50">大家已经基本持平。</p>}
                 </div>
               </div>
               <details open={ledger.activity.enableInternalSettlement}>
-                <summary className="cursor-pointer text-sm text-ink/60">家庭内部参考</summary>
-                <div className="mt-2 rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
+                <summary className="cursor-pointer font-display text-sm font-semibold text-ink/65">家庭内部参考</summary>
+                <div className="mt-2 rounded-2xl bg-paper-50 p-4 shadow-soft">
                   {result.internalSettlements.map((item) => (
-                    <div className="mb-2 flex flex-wrap items-center gap-2" key={`${item.groupId}-${item.fromId}-${item.toId}`}>
-                      <span>{item.groupName}：</span><span>{item.fromName}</span><span className="rounded-full border border-clay/15 bg-clay/10 px-2 py-1 text-xs text-clay">可转给</span><span>{item.toName}</span><strong>{money(item.amount)}</strong>
+                    <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl bg-paper-100 px-3 py-2 last:mb-0" key={`${item.groupId}-${item.fromId}-${item.toId}`}>
+                      <span className="font-display text-sm font-semibold text-ink/65">{item.groupName}：</span>
+                      <span>{item.fromName}</span>
+                      <span className="font-display text-base font-semibold text-clay">→</span>
+                      <span>{item.toName}</span>
+                      <strong className="ml-auto font-display tabular-nums">{money(item.amount)}</strong>
                     </div>
                   ))}
                   {!result.internalSettlements.length && <p className="text-sm text-ink/50">暂无需要展示的家庭内部参考。</p>}
@@ -765,7 +819,7 @@ export function App() {
         )}
       </div>
 
-      <nav className="fixed inset-x-3 bottom-3 z-10 grid grid-cols-4 gap-1 rounded-lg border border-ink/10 bg-white/75 p-1 shadow-glass backdrop-blur-xl sm:hidden">
+      <nav className="fixed inset-x-3 bottom-3 z-10 grid grid-cols-4 gap-1 rounded-2xl bg-ink p-1.5 shadow-pill sm:hidden">
         <MobileNavButton icon={<Home size={18} />} active={page === "activities"} onClick={() => setPage("activities")}>活动</MobileNavButton>
         <MobileNavButton icon={<Users size={18} />} active={page === "settings"} onClick={() => setPage("settings")}>设置</MobileNavButton>
         <MobileNavButton icon={<ReceiptText size={18} />} active={page === "expenses"} onClick={() => setPage("expenses")}>费用</MobileNavButton>
@@ -781,52 +835,82 @@ function HeroVisual({ ledger, result }: { ledger: LedgerState; result: ReturnTyp
     .slice(0, 3);
   const maxCategory = Math.max(1, ...topCategories.map(([, amount]) => amount));
   const nextSettlement = result.groupSettlements[0];
+  const waitingCount = result.groupSettlements.length;
+
+  // Pretty-format the total: split big number from .cents
+  const totalStr = money(result.totalAmount);
+  const [intPart, centPart] = totalStr.replace(/^¥/, "").split(".");
 
   return (
-    <aside className="hero-visual overflow-hidden rounded-lg border border-ink/10 bg-white/50 p-4 shadow-glass backdrop-blur-xl">
-      <div className="relative z-10 flex items-start justify-between gap-4">
-        <div>
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-ink/50">Balance sheet</span>
-          <strong className="mt-2 block font-display text-4xl font-normal leading-none text-ink">{money(result.totalAmount)}</strong>
+    <aside className="grid gap-3">
+      {/* Hero — dark card with radial glow */}
+      <div className="citrus-hero relative overflow-hidden rounded-2xl p-5 shadow-glass">
+        <div className="flex items-start justify-between gap-3">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/55">Balance sheet</span>
+          <span className="rounded-full bg-white/12 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-white/75">
+            {activityTypes[ledger.activity.type]}
+          </span>
         </div>
-        <span className="rounded-full border border-ink/10 bg-paper-50/70 px-2.5 py-1 text-[11px] text-ink/60">
-          {activityTypes[ledger.activity.type]}
-        </span>
-      </div>
+        <div className="mt-4 flex items-baseline gap-1">
+          <span className="font-serif text-3xl italic leading-none text-clay">¥</span>
+          <span className="font-display text-5xl font-semibold leading-none tracking-[-0.04em] tabular-nums text-white">{intPart}</span>
+          {centPart && <span className="font-display text-2xl font-medium leading-none tabular-nums text-white/55">.{centPart}</span>}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-white/70">
+          <span>{ledger.groups.length} 家</span>
+          <span className="opacity-50">·</span>
+          <span>{ledger.members.length} 人</span>
+          <span className="opacity-50">·</span>
+          <span>{ledger.expenses.length} 笔</span>
+          {waitingCount > 0 && (
+            <>
+              <span className="opacity-50">·</span>
+              <span className="font-medium text-clay">{waitingCount} 笔待结算</span>
+            </>
+          )}
+        </div>
 
-      <div className="relative z-10 mt-8 grid gap-2">
-        {topCategories.map(([category, amount]) => (
-          <div className="grid gap-1" key={category}>
-            <div className="flex items-center justify-between text-xs text-ink/50">
-              <span>{categories[category]}</span>
-              <span className="tabular-nums">{money(amount)}</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-ink/10">
-              <div
-                className="h-full rounded-full bg-clay"
-                style={{ width: `${Math.max(12, (amount / maxCategory) * 100)}%` }}
-              />
-            </div>
-          </div>
-        ))}
-        {!topCategories.length && (
-          <div className="rounded-lg border border-dashed border-ink/10 bg-white/40 p-3 text-sm text-ink/50">
-            还没有费用记录。
+        {topCategories.length > 0 && (
+          <div className="mt-5 grid gap-2">
+            {topCategories.map(([category, amount]) => (
+              <div className="grid gap-1" key={category}>
+                <div className="flex items-center justify-between text-[11px] text-white/65">
+                  <span>{categories[category]}</span>
+                  <span className="font-mono tabular-nums text-white/85">{money(amount)}</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
+                  <div
+                    className="h-full rounded-full bg-clay"
+                    style={{ width: `${Math.max(12, (amount / maxCategory) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      <div className="relative z-10 mt-8 rounded-lg border border-ink/10 bg-paper-50/70 p-3">
-        <span className="text-[11px] uppercase tracking-[0.18em] text-moss">Next transfer</span>
-        {nextSettlement ? (
-          <p className="mt-2 text-sm leading-6 text-ink/70">
-            <span className="font-semibold text-ink">{nextSettlement.fromName}</span> 转给{" "}
-            <span className="font-semibold text-ink">{nextSettlement.toName}</span>{" "}
-            <span className="font-semibold tabular-nums text-clay">{money(nextSettlement.amount)}</span>
-          </p>
-        ) : (
-          <p className="mt-2 text-sm leading-6 text-ink/60">当前没有待结算转账。</p>
-        )}
+      {/* Bento bottom row — next transfer */}
+      <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr]">
+        <div className="rounded-2xl bg-paper-50 p-4 shadow-soft">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink/45">Next transfer</span>
+          {nextSettlement ? (
+            <p className="mt-2 text-[15px] leading-6 text-ink/75">
+              <span className="font-display font-semibold text-ink">{nextSettlement.fromName}</span> 转给{" "}
+              <span className="font-display font-semibold text-ink">{nextSettlement.toName}</span>{" "}
+              <span className="font-display font-semibold tabular-nums text-clay">{money(nextSettlement.amount)}</span>
+            </p>
+          ) : (
+            <p className="mt-2 text-[14px] leading-6 text-ink/55">当前没有待结算转账。</p>
+          )}
+        </div>
+        <div className="rounded-2xl bg-clay p-4 text-white shadow-pop">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/75">待结算</span>
+          <div className="mt-1 flex items-baseline gap-1.5">
+            <span className="font-display text-4xl font-semibold leading-none tabular-nums tracking-[-0.04em]">{waitingCount}</span>
+            <span className="text-[12px] text-white/80">笔转账</span>
+          </div>
+        </div>
       </div>
     </aside>
   );
@@ -878,8 +962,8 @@ function ExpenseForm({ draft, editing, ledger, onCancel, onChange, onSubmit }: {
       <details>
         <summary className="cursor-pointer text-sm text-ink/60">选择参与人/家庭</summary>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
-            <strong className="text-sm">成员</strong>
+          <div className="rounded-2xl bg-paper-50 p-4 shadow-soft">
+            <strong className="font-display text-sm font-semibold">成员</strong>
             <div className="mt-2 grid gap-1">
               {ledger.members.map((member) => (
                 <label className="flex items-center gap-2 text-sm text-ink/60" key={member.id}>
@@ -888,8 +972,8 @@ function ExpenseForm({ draft, editing, ledger, onCancel, onChange, onSubmit }: {
               ))}
             </div>
           </div>
-          <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-soft backdrop-blur">
-            <strong className="text-sm">家庭</strong>
+          <div className="rounded-2xl bg-paper-50 p-4 shadow-soft">
+            <strong className="font-display text-sm font-semibold">家庭</strong>
             <div className="mt-2 grid gap-1">
               {ledger.groups.map((group) => (
                 <label className="flex items-center gap-2 text-sm text-ink/60" key={group.id}>
@@ -922,9 +1006,9 @@ function ExpenseForm({ draft, editing, ledger, onCancel, onChange, onSubmit }: {
 
 function Panel({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-ink/10 bg-white/50 p-4 shadow-glass backdrop-blur-xl">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-display text-2xl font-normal leading-tight text-ink">{title}</h2>
+    <section className="rounded-2xl bg-paper-50 p-5 shadow-soft">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="font-display text-xl font-semibold leading-tight tracking-tight text-ink sm:text-2xl">{title}</h2>
         {action}
       </div>
       {children}
@@ -935,7 +1019,7 @@ function Panel({ title, action, children }: { title: string; action?: React.Reac
 function NavButton({ active, children, icon, onClick }: { active: boolean; children: React.ReactNode; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm ${active ? "bg-ink text-paper-50 shadow-soft" : "text-ink/60 hover:bg-white/40"}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-display font-medium transition ${active ? "bg-clay text-white shadow-soft" : "text-ink/65 hover:bg-paper-50"}`}
       onClick={onClick}
       type="button"
     >
@@ -948,7 +1032,7 @@ function NavButton({ active, children, icon, onClick }: { active: boolean; child
 function MobileNavButton({ active, children, icon, onClick }: { active: boolean; children: React.ReactNode; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button
-      className={`grid min-h-12 place-items-center rounded-lg px-1 py-1 text-[11px] ${active ? "bg-ink text-paper-50 shadow-soft" : "text-ink/60"}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-2xl px-3 py-2.5 text-[12px] font-display font-semibold transition ${active ? "bg-clay text-white" : "text-white/55 hover:text-white/85"}`}
       onClick={onClick}
       type="button"
     >
@@ -959,25 +1043,31 @@ function MobileNavButton({ active, children, icon, onClick }: { active: boolean;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="grid gap-1 text-sm text-ink/60"><span>{label}</span>{children}</label>;
+  return <label className="grid gap-1.5 text-[13px] font-medium text-ink/60"><span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">{label}</span>{children}</label>;
 }
 
-function Button({ children, icon, variant = "primary", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { icon?: React.ReactNode; variant?: "primary" | "soft" | "ghost" | "danger" }) {
+function Button({ children, icon, variant = "primary", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { icon?: React.ReactNode; variant?: "primary" | "soft" | "ghost" | "danger" | "accent" }) {
   const styles = {
-    primary: "bg-ink text-paper-50 hover:bg-clay shadow-soft",
-    soft: "border border-ink/10 bg-paper-50/70 text-ink/75 hover:bg-white/70",
-    ghost: "bg-transparent text-ink/60 hover:bg-white/40",
-    danger: "border border-clay/15 bg-clay/10 text-clay hover:bg-clay/15",
+    primary: "bg-ink text-paper-50 hover:bg-ink/90 shadow-soft",
+    accent:  "bg-clay text-white hover:bg-mint-700 shadow-pop",
+    soft:    "bg-paper-100 text-ink/80 hover:bg-paper-200",
+    ghost:   "bg-transparent text-ink/65 hover:bg-paper-100",
+    danger:  "bg-clay/10 text-clay hover:bg-clay/15",
   };
-  return <button className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm ${styles[variant]}`} {...props}>{icon}{children}</button>;
+  return <button className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-display font-semibold tracking-tight transition ${styles[variant]}`} {...props}>{icon}{children}</button>;
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg border border-ink/10 bg-white/50 p-3 shadow-glass backdrop-blur-xl"><span className="text-xs uppercase tracking-[0.14em] text-ink/50">{label}</span><strong className="mt-1 block font-display text-2xl font-normal tabular-nums text-ink">{value}</strong></div>;
+function Stat({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className={`rounded-2xl p-4 ${accent ? "bg-clay text-white shadow-pop" : "bg-paper-50 text-ink shadow-soft"}`}>
+      <span className={`font-mono text-[10px] uppercase tracking-[0.16em] ${accent ? "text-white/70" : "text-ink/45"}`}>{label}</span>
+      <strong className={`mt-1 block font-display text-2xl font-semibold leading-none tabular-nums tracking-tight ${accent ? "text-white" : "text-ink"}`}>{value}</strong>
+    </div>
+  );
 }
 
 function SummaryBlock({ title, text }: { title: string; text: string }) {
-  return <div>{title && <h3 className="mb-2 font-semibold text-ink">{title}</h3>}<pre className="whitespace-pre-wrap rounded-lg border border-dashed border-clay/20 bg-linen/75 p-3 text-sm leading-7 text-ink/70">{text}</pre></div>;
+  return <div>{title && <h3 className="mb-2 font-display text-base font-semibold text-ink">{title}</h3>}<pre className="bill-summary">{text}</pre></div>;
 }
 
 function options<T extends string>(items: Record<T, string>) {
