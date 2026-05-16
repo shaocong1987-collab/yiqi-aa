@@ -17,7 +17,7 @@ import { createExpense, createMember, createSampleState } from "./sample";
 import { calculateSettlement, compactSummary, detailedSummary, generateBillSummary, getEffectiveAmount } from "./settlement";
 import { deleteLedger as deleteStoredLedger, loadLedger, loadLedgers, saveLedger, setCurrentLedger, validateLedger } from "./storage";
 import type { Category, DefaultSplitMode, Expense, ExpenseSplitMode, LedgerState, MemberType } from "./types";
-import { downloadJson, money, timestamp, today, uid } from "./utils";
+import { downloadJson, money, roundMoney, timestamp, today, uid } from "./utils";
 
 // ──────────────────────────────────────────────────────────────────────
 // Citrus design — category pastel palette + single-char label
@@ -191,7 +191,7 @@ export function App() {
   const result = useMemo(() => calculateSettlement(ledger), [ledger]);
   const filteredExpenses = useMemo(() => {
     const keyword = filters.keyword.trim().toLowerCase();
-    return ledger.expenses.filter((expense) => {
+    const filtered = ledger.expenses.filter((expense) => {
       const payer = ledger.members.find((member) => member.id === expense.payerId);
       const matchKeyword = !keyword
         || expense.content.toLowerCase().includes(keyword)
@@ -201,7 +201,17 @@ export function App() {
       const matchPayer = filters.payerId === "all" || expense.payerId === filters.payerId;
       return matchKeyword && matchCategory && matchPayer;
     });
+    return filtered.sort((a, b) => {
+      const dateA = a.expenseDate || a.createdAt;
+      const dateB = b.expenseDate || b.createdAt;
+      return dateB.localeCompare(dateA);
+    });
   }, [filters, ledger.expenses, ledger.members]);
+
+  const filteredTotal = useMemo(
+    () => filteredExpenses.reduce((sum, e) => roundMoney(sum + getEffectiveAmount(e)), 0),
+    [filteredExpenses],
+  );
 
   const updateLedger = (updater: (current: LedgerState) => LedgerState) => {
     setLedger((current) => {
@@ -261,6 +271,8 @@ export function App() {
   };
 
   const deleteGroup = (groupId: string) => {
+    const group = ledger.groups.find((g) => g.id === groupId);
+    if (!group || !window.confirm(`确定删除「${group.name}」吗？该家庭的成员不会被删除，但会变为未分配。`)) return;
     updateLedger((current) => ({
       ...current,
       groups: current.groups.filter((group) => group.id !== groupId),
@@ -269,6 +281,11 @@ export function App() {
   };
 
   const deleteMember = (memberId: string) => {
+    const member = ledger.members.find((m) => m.id === memberId);
+    const hasExpenses = ledger.expenses.some((e) => e.payerId === memberId);
+    if (!member) return;
+    const warning = hasExpenses ? `该成员有付款记录，删除后相关费用也会被移除。` : "";
+    if (!window.confirm(`确定移除「${member.name}」吗？${warning}`)) return;
     updateLedger((current) => ({
       ...current,
       members: current.members.filter((member) => member.id !== memberId),
@@ -318,6 +335,9 @@ export function App() {
   };
 
   const deleteExpense = (expenseId: string) => {
+    const expense = ledger.expenses.find((e) => e.id === expenseId);
+    if (!expense) return;
+    if (!window.confirm(`确定删除「${expense.content || categories[expense.category]}」（${money(getEffectiveAmount(expense))}）吗？`)) return;
     updateLedger((current) => ({
       ...current,
       expenses: current.expenses.filter((expense) => expense.id !== expenseId),
@@ -373,10 +393,13 @@ export function App() {
   };
 
   const removeActivity = async (activityId: string) => {
+    const target = activityList.find((item) => item.activity.id === activityId);
+    if (!target) return;
     if (activityList.length <= 1) {
       setMessage("至少保留一个活动。");
       return;
     }
+    if (!window.confirm(`确定移除「${target.activity.name}」吗？建议先导出 JSON 备份。`)) return;
     await deleteStoredLedger(activityId);
     const nextList = await loadLedgers();
     setActivityList(nextList);
@@ -699,6 +722,10 @@ export function App() {
                     {ledger.members.filter((member) => member.canPay).map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
                   </select>
                 </Field>
+              </div>
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-paper-100 px-3.5 py-2 text-sm text-ink/60">
+                <span>筛选结果：{filteredExpenses.length} 笔</span>
+                <span className="font-display font-semibold tabular-nums text-ink">{money(filteredTotal)}</span>
               </div>
               <div className="mt-4 grid gap-3">
                 {filteredExpenses.map((expense) => {

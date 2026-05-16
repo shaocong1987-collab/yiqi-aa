@@ -1,4 +1,4 @@
-const CACHE_VERSION = "yiqi-aa-v1";
+const CACHE_VERSION = "yiqi-aa-v2";
 const SCOPE_URL = new URL(self.registration.scope);
 const shellUrl = (path) => new URL(path, SCOPE_URL).toString();
 const APP_SHELL = [
@@ -7,7 +7,8 @@ const APP_SHELL = [
   shellUrl("manifest.webmanifest"),
   shellUrl("icons/icon.svg"),
   shellUrl("icons/icon-192.png"),
-  shellUrl("icons/icon-512.png")
+  shellUrl("icons/icon-512.png"),
+  shellUrl("fonts/fonts.css")
 ];
 
 async function cacheBuiltAssets(cache) {
@@ -24,6 +25,16 @@ async function cacheBuiltAssets(cache) {
     .map((url) => new URL(url, SCOPE_URL).toString());
 
   await Promise.all(assetUrls.map((url) => cache.add(url).catch(() => undefined)));
+
+  const fontsCssUrl = shellUrl("fonts/fonts.css");
+  const fontsResponse = await fetch(fontsCssUrl, { cache: "no-store" }).catch(() => null);
+  if (fontsResponse && fontsResponse.ok) {
+    await cache.put(fontsCssUrl, fontsResponse);
+    const fontsText = await fontsResponse.clone().text();
+    const fontUrls = [...fontsText.matchAll(/url\('\.\/([^']+)'\)/g)]
+      .map((match) => shellUrl("fonts/" + match[1]));
+    await Promise.all(fontUrls.map((url) => cache.add(url).catch(() => undefined)));
+  }
 }
 
 self.addEventListener("install", (event) => {
